@@ -44,15 +44,16 @@ class Star(object):
         """
 
         ##Find the closest eep files to use...
-        ms_grid = np.genfromtxt(self.eep_base + "/masses") 
+        ms_grid_str = np.genfromtxt(self.eep_base + "/masses", dtype=str)
+        ms_grid = np.genfromtxt(self.eep_base + "/masses")
         ms_grid_cgs = ms_grid / 100 * cgs.M_sun
         ii = np.where(ms_grid_cgs <= self.msi)[0][-1]
         jj = np.where(ms_grid_cgs > self.msi)[0][0]
         ##Interpolate track using iso repository--using template...
         with open("input.example_template", "r") as ff:
             temp = ff.read()
-            temp = temp.replace("TT1", ms_grid[ii] + "M.track")
-            temp = temp.replace("TT2", ms_grid[jj] + "M.track")
+            temp = temp.replace("TT1", ms_grid_str[ii] + "M.track")
+            temp = temp.replace("TT2", ms_grid_str[jj] + "M.track")
             temp = temp.replace("EEP_BASE", self.eep_base)    
         with open("input.example", "w") as ff:
             ff.write(temp)

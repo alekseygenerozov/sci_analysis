@@ -13,7 +13,7 @@ def to_mist_file(s1):
     return "{0:05d}M.track".format(int(100 * s1))
 
 class Star(object):
-    def __init__(self, msi, age, metallicity = 0.02, eep_base = "eep_data/"):
+    def __init__(self, msi, age, metallicity = 0.02, eep_base = "eep_data/", iso_path = "iso/"):
         """
         Simple container for stellar data. Everything should be in cgs units...
 
@@ -25,6 +25,7 @@ class Star(object):
         self.msi = msi
         self.metallicity = metallicity
         self.eep_base = eep_base
+        self.iso_path = iso_path
         self.get_star_track()
         self.track = self.get_star_track()
 
@@ -49,8 +50,10 @@ class Star(object):
         ms_grid_cgs = ms_grid / 100 * cgs.M_sun
         ii = np.where(ms_grid_cgs <= self.msi)[0][-1]
         jj = np.where(ms_grid_cgs > self.msi)[0][0]
+        
+
         ##Interpolate track using iso repository--using template...
-        with open("input.example_template", "r") as ff:
+        with open(self.iso_path + "/input.example_template", "r") as ff:
             temp = ff.read()
             temp = temp.replace("TT1", ms_grid_str[ii] + "M.track")
             temp = temp.replace("TT2", ms_grid_str[jj] + "M.track")
@@ -58,12 +61,13 @@ class Star(object):
         with open("input.example", "w") as ff:
             ff.write(temp)
 
-        with open("input.tracks_template", "r") as ff:
+        with open(self.iso_path + "/input.tracks_template", "r") as ff:
             temp = ff.read()
             temp = temp.replace("MM", str(self.msi / cgs.M_sun))
         with open("input.tracks", "w") as ff:
             ff.write(temp)
-        bc.bash_command("/home/aleksey/software/iso/make_track ./input.tracks")
+        bc.bash_command("cp {0}/input.nml .".format(self.iso_path))
+        bc.bash_command(self.iso_path +  "/make_track input.tracks")
         ##Read in data and rename columns
         ##Set initial time to 0.
         track = read_mist_models.EEP("interpTrack")

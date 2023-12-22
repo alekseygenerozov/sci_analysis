@@ -19,7 +19,7 @@ class Star(object):
 
         :param msi float: ZAMS stellar mass
         :param age float: Stellar age
-        :param metallicity float: Stellar metallicity
+        :param metallicity float: Stellar metallicity (NOT CURRENTLY USED)
 
         """
         self.msi = msi
@@ -28,7 +28,7 @@ class Star(object):
         self.iso_path = iso_path
         self.get_star_track()
         self.track = self.get_star_track()
-
+        ##This line is redundant...
         self.rad = 10.**np.interp(age, self.track['Tev(Myr)'], self.track['log10(R)']) * cgs.R_sun
         self.evolve_star(age)
 
@@ -78,6 +78,9 @@ class Star(object):
         log_R = track.eeps['log_R']
         track = Table(data=(ages / 1e6, Mt, log_R, type), names=['Tev(Myr)', 'Mt', 'log10(R)', 'type'])
         bc.bash_command("rm interpTrack")
+        bc.bash_command("rm input.tracks")
+        bc.bash_command("rm input.example")
+
 
         return track
 

@@ -77,6 +77,7 @@ class Star(object):
         type = track.eeps['phase']
         log_R = track.eeps['log_R']
         track = Table(data=(ages / 1e6, Mt, log_R, type), names=['Tev(Myr)', 'Mt', 'log10(R)', 'type'])
+        bc.bash_command("rm interpTrack")
 
         return track
 

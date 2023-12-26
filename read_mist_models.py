@@ -1,1 +1,1 @@
-/home/aleksey/software/read_mist_models.py
+MIST_v1.2_data/read_mist_models.py

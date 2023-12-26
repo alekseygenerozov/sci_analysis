@@ -29,7 +29,7 @@ def change_a_gw_orb(a0, e0, m1, m2):
 	"""
 	Change orbital semimajor axis over a single orbit. Peters 1964
 	"""
-	return change_energy_gw_orb(a0, e0, m1, m2) * 2. * a0**2. / (cgs.G * m1 * m2)
+	return -change_energy_gw_orb(a0, e0, m1, m2) * 2. * a0**2. / (cgs.G * m1 * m2)
 
 def change_ecc_gw_orb(a0, e0, m1, m2):
 	"""
@@ -37,11 +37,11 @@ def change_ecc_gw_orb(a0, e0, m1, m2):
 	"""
 	mtot = m1 + m2
 	rp = a0 * (1. - e0)
-	return -304. / 15. * h(e0) * m1 * m2 / mtot**2. * (rp / rsch(mtot))**(-2.5)
+	return -304. / 15. * np.pi / 2.**1.5 * h(e0) * m1 * m2 / mtot**2. * (rp / rsch(mtot))**(-2.5)
 
-def change_j_gw_orb(a0, e0, m1, m2):
+def change_j_red_gw_orb(a0, e0, m1, m2):
 	"""
-	Change in eccentricity over a single orbit. Peters 1964
+	Change in reduced angular momentum over a single orbit. Peters 1964
 	"""
 	return -change_ecc_gw_orb(a0, e0, m1, m2) * (e0 / np.sqrt(1. - e0**2.))
 

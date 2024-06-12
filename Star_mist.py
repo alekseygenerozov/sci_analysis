@@ -8,6 +8,13 @@ import cgs_const as cgs
 import read_mist_models
 from astropy.table import Table
 
+def init_to_final(mi):
+    if mi < 8.0 * cgs.M_sun:
+        return 0.6 * cgs.M_sun
+    elif mi < 20.0 * cgs.M_sun:
+        return 1.4 * cgs.M_sun
+    else:
+        return 10.0 * cgs.M_sun
 
 def to_mist_file(s1):
     return "{0:05d}M.track".format(int(100 * s1))
@@ -76,7 +83,8 @@ class Star(object):
         Mt  = track.eeps['star_mass']
         type = track.eeps['phase']
         log_R = track.eeps['log_R']
-        track = Table(data=(ages / 1e6, Mt, log_R, type), names=['Tev(Myr)', 'Mt', 'log10(R)', 'type'])
+        log_Teff = track.eeps['log_Teff']
+        track = Table(data=(ages / 1e6, Mt, log_R, type, log_Teff), names=['Tev(Myr)', 'Mt', 'log10(R)', 'type', 'log_Teff'])
         bc.bash_command("rm interpTrack")
         bc.bash_command("rm input.tracks")
         bc.bash_command("rm input.example")
@@ -92,13 +100,15 @@ class Star(object):
         self.age = t
         ##Mist tracks don't include remnant phase. Hack to include such phases in a mc scheme...
         if t / (1e6 * cgs.year) > np.max(track['Tev(Myr)']):
+            self.ms = init_to_final(self.msi)
             self.type = 20
             self.rad = 0
+            self.teff = 0
         else:
             self.ms = np.interp(t / (1e6 * cgs.year), track['Tev(Myr)'], track['Mt']) * cgs.M_sun
             self.rad = 10.**np.interp(t / (1e6 * cgs.year), track['Tev(Myr)'], track['log10(R)']) * cgs.R_sun
             self.type = float(interp1d(track['Tev(Myr)'], track['type'], kind='nearest')(t / (1e6 * cgs.year)))
-
+            self.teff = 10.**np.interp(t / (1e6 * cgs.year), track['Tev(Myr)'], track['log_Teff'])
 
 
 

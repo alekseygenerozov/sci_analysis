@@ -19,28 +19,32 @@ def init_to_final(mi):
 def to_mist_file(s1):
     return "{0:05d}M.track".format(int(100 * s1))
 
+
 class Star(object):
-    def __init__(self, msi, age, metallicity = 0.02, eep_base = "eep_data/", iso_path = "iso/"):
+    def __init__(self, msi, age, metallicity = 0.02, eep_base = "eep_data/", iso_path = "iso/", phot_sys="", filters=()):
         """
         Simple container for stellar data. Everything should be in cgs units...
 
         :param msi float: ZAMS stellar mass
         :param age float: Stellar age
         :param metallicity float: Stellar metallicity (NOT CURRENTLY USED)
+        :param iso str (iso/): Path to ISO code
+        :param eep_base str (eep_data/): Path to eep_data
+        :param phot_sys str (): Photometric system to use
 
         """
         self.msi = msi
         self.metallicity = metallicity
         self.eep_base = eep_base
         self.iso_path = iso_path
+        self.phot_sys = phot_sys
+        self.filters = np.atleast_1d(filters)
+        self.phot = {}
         self.get_star_track()
-        self.track = self.get_star_track()
-        ##This line is redundant...
-        self.rad = 10.**np.interp(age, self.track['Tev(Myr)'], self.track['log10(R)']) * cgs.R_sun
+        ##Set properties to the input age
         self.evolve_star(age)
 
 
-    ##Make class methods??
     def get_star_track(self):
         """
         Get evolutionary track for star using sse as a backend for now
@@ -74,24 +78,25 @@ class Star(object):
         with open("input.tracks", "w") as ff:
             ff.write(temp)
         bc.bash_command("cp {0}/input.nml .".format(self.iso_path))
-        bc.bash_command(self.iso_path +  "/make_track input.tracks")
+        bc.bash_command("cp {0}/bc_table.list .".format(self.iso_path))
+        bc.bash_command(self.iso_path +  f"/make_track input.tracks {self.phot_sys}")
         ##Read in data and rename columns
         ##Set initial time to 0.
         track = read_mist_models.EEP("interpTrack")
-        ages = track.eeps['star_age']
-        ages = ages - ages[0]
-        Mt  = track.eeps['star_mass']
-        type = track.eeps['phase']
-        log_R = track.eeps['log_R']
-        log_L = track.eeps['log_L']
-        log_Teff = track.eeps['log_Teff']
-        track = Table(data=(ages / 1e6, Mt, log_R, type, log_Teff, log_L), names=['Tev(Myr)', 'Mt', 'log10(R)', 'type', 'log_Teff', 'log_L'])
+        track.eeps["star_age"] = (track.eeps["star_age"] - track.eeps["star_age"][0]) / 1e6
+        self.track = Table(track.eeps)['star_age', 'star_mass', 'log_R', 'phase', 'log_Teff', 'log_L']
+
         bc.bash_command("rm interpTrack")
         bc.bash_command("rm input.tracks")
         bc.bash_command("rm input.example")
 
-
-        return track
+        if self.phot_sys:
+            cmd_track = read_mist_models.EEPCMD("interpTrack.cmd")
+            cmd_track.eepcmds["star_age"] = (cmd_track.eepcmds["star_age"] - cmd_track.eepcmds["star_age"][0]) / 1e6
+            cols = ["star_age"]
+            cols = list(np.concatenate((cols, self.filters)))
+            self.track_cmd = Table(cmd_track.eepcmds)[cols]
+            bc.bash_command("rm interpTrack.cmd")
 
     def evolve_star(self, t):
         """
@@ -100,19 +105,25 @@ class Star(object):
         track = self.track
         self.age = t
         ##Mist tracks don't include remnant phase. Hack to include such phases in a mc scheme...
-        if t / (1e6 * cgs.year) > np.max(track['Tev(Myr)']):
+        if t / (1e6 * cgs.year) > np.max(track['star_age']):
             self.ms = init_to_final(self.msi)
             self.type = 20
             self.rad = 0
             self.teff = 0
             self.lum = 0
+            if self.phot_sys:
+                for filt in self.filters:
+                    self.phot[filt] = np.inf
         else:
-            self.ms = np.interp(t / (1e6 * cgs.year), track['Tev(Myr)'], track['Mt']) * cgs.M_sun
-            self.rad = 10.**np.interp(t / (1e6 * cgs.year), track['Tev(Myr)'], track['log10(R)']) * cgs.R_sun
-            self.type = float(interp1d(track['Tev(Myr)'], track['type'], kind='nearest')(t / (1e6 * cgs.year)))
-            self.teff = 10.**np.interp(t / (1e6 * cgs.year), track['Tev(Myr)'], track['log_Teff'])
-            self.lum = 10.**np.interp(t / (1e6 * cgs.year), track['Tev(Myr)'], track['log_L']) * cgs.L_sun
-
+            self.ms = np.interp(t / (1e6 * cgs.year), track['star_age'], track['star_mass']) * cgs.M_sun
+            self.rad = 10.**np.interp(t / (1e6 * cgs.year), track['star_age'], track['log_R']) * cgs.R_sun
+            self.type = float(interp1d(track['star_age'], track['phase'], kind='nearest')(t / (1e6 * cgs.year)))
+            self.teff = 10.**np.interp(t / (1e6 * cgs.year), track['star_age'], track['log_Teff'])
+            self.lum = 10.**np.interp(t / (1e6 * cgs.year), track['star_age'], track['log_L']) * cgs.L_sun
+            if self.phot_sys:
+                track = self.track_cmd
+                for filt in self.filters:
+                    self.phot[filt] = np.interp(t / (1e6 * cgs.year), track["star_age"],  track[filt])
 
 
 

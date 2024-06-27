@@ -83,8 +83,9 @@ class Star(object):
         Mt  = track.eeps['star_mass']
         type = track.eeps['phase']
         log_R = track.eeps['log_R']
+        log_L = track.eeps['log_L']
         log_Teff = track.eeps['log_Teff']
-        track = Table(data=(ages / 1e6, Mt, log_R, type, log_Teff), names=['Tev(Myr)', 'Mt', 'log10(R)', 'type', 'log_Teff'])
+        track = Table(data=(ages / 1e6, Mt, log_R, type, log_Teff, log_L), names=['Tev(Myr)', 'Mt', 'log10(R)', 'type', 'log_Teff', 'log_L'])
         bc.bash_command("rm interpTrack")
         bc.bash_command("rm input.tracks")
         bc.bash_command("rm input.example")
@@ -104,11 +105,14 @@ class Star(object):
             self.type = 20
             self.rad = 0
             self.teff = 0
+            self.lum = 0
         else:
             self.ms = np.interp(t / (1e6 * cgs.year), track['Tev(Myr)'], track['Mt']) * cgs.M_sun
             self.rad = 10.**np.interp(t / (1e6 * cgs.year), track['Tev(Myr)'], track['log10(R)']) * cgs.R_sun
             self.type = float(interp1d(track['Tev(Myr)'], track['type'], kind='nearest')(t / (1e6 * cgs.year)))
             self.teff = 10.**np.interp(t / (1e6 * cgs.year), track['Tev(Myr)'], track['log_Teff'])
+            self.lum = 10.**np.interp(t / (1e6 * cgs.year), track['Tev(Myr)'], track['log_L']) * cgs.L_sun
+
 
 
 

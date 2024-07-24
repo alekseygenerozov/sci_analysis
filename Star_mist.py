@@ -47,7 +47,7 @@ class Star(object):
 
     def get_star_track(self):
         """
-        Get evolutionary track for star using sse as a backend for now
+        Get evolutionary track for star
 
         :param my_star Star: Star object for which to get track
 
@@ -77,7 +77,7 @@ class Star(object):
             temp = temp.replace("MM", str(self.msi / cgs.M_sun))
         with open("input.tracks", "w") as ff:
             ff.write(temp)
-        bc.bash_command("cp {0}/input.nml .".format(self.iso_path))
+        # bc.bash_command("cp {0}/input.nml .".format(self.iso_path))
         bc.bash_command("cp {0}/bc_table.list .".format(self.iso_path))
         bc.bash_command(self.iso_path +  f"/make_track input.tracks {self.phot_sys}")
         ##Read in data and rename columns

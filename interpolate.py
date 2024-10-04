@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
+from scipy.interpolate import interp1d
 
 def log_interp(x, xs, ys, **kwargs):
 	return np.exp(IUS(np.log(xs), np.log(ys), **kwargs)(np.log(x)))
@@ -11,3 +12,15 @@ def log_integral(x1, x2, xs, ys, **kwargs):
 	'''
 	us=np.log(xs)
 	return IUS(us, ys*np.exp(us), **kwargs).integral(np.log(x1), np.log(x2))
+
+def get_crossing(absc, ords, thres):
+	'''
+	Find location where ords first crosses through thres -- Either from above or from below
+
+	Useful for finding zero-crossings for numerical data
+	'''
+	x = ords - thres
+	test=np.array([x[i]*x[i+1] for i in range(len(x)-1)])
+	idx=np.where(test<=0)[0][0]
+
+	return interp1d([x[idx], x[idx+1]], [absc[idx], absc[idx+1]])(0.)

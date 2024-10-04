@@ -65,7 +65,7 @@ class Star(object):
 
     def evolve_star(self, t):
         """
-
+        Evolve star to age t...
         """
         self.age = t
         snap1 = get_closest(np.log10(t / cgs.year), self.times)

@@ -100,7 +100,9 @@ class Star(object):
 
     def evolve_star(self, t):
         """
+        Evolve star to age t
 
+        If star is dead it will have type=20, teff=-1, rad=0, and luminosity 0.
         """
         track = self.track
         self.age = t
@@ -108,9 +110,9 @@ class Star(object):
         if t / (1e6 * cgs.year) > np.max(track['star_age']):
             self.ms = init_to_final(self.msi)
             self.type = 20
-            self.rad = 0
-            self.teff = 0
-            self.lum = 0
+            self.rad = 0.0
+            self.teff = -1.0
+            self.lum = 0.0
             if self.phot_sys:
                 for filt in self.filters:
                     self.phot[filt] = np.inf

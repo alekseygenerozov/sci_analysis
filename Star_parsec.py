@@ -67,7 +67,7 @@ class Star(object):
         """
         Evolve star to age t
 
-        If star is dead it will have type=20, teff=-1, rad=0, and luminosity -inf.
+        If star is dead it will have type=20, teff=-1, rad=0, and luminosity 0.
         """
         self.age = t
         snap1 = get_closest(np.log10(t / cgs.year), self.times)

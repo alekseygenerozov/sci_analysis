@@ -65,7 +65,9 @@ class Star(object):
 
     def evolve_star(self, t):
         """
-        Evolve star to age t...
+        Evolve star to age t
+
+        If star is dead it will have type=20, teff=-1, rad=0, and luminosity -inf.
         """
         self.age = t
         snap1 = get_closest(np.log10(t / cgs.year), self.times)
@@ -74,9 +76,8 @@ class Star(object):
         mini_cgs = track["Mini"] * cgs.M_sun
         mass_cgs = track["Mass"] * cgs.M_sun
 
-        # self.ms = np.interp(np.log10(snap1), track['Mini'], track['Mass'], right=remnant_mass(self.msi)) * cgs.M_sun
         self.ms = log_interp(self.msi, mini_cgs, mass_cgs, right=remnant_mass(self.msi))
-        self.K = semi_log_interp(self.msi, mini_cgs, track['Kmag'], right=-1.0)
+        self.K = semi_log_interp(self.msi, mini_cgs, track['Kmag'], right=np.inf)
         self.type = semi_log_interp(self.msi, mini_cgs, track['label'], right=20.0)
 
         self.lum = 10.**semi_log_interp(self.msi, mini_cgs, track['logL'], right=-np.inf) * cgs.L_sun

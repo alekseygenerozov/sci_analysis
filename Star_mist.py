@@ -8,6 +8,8 @@ import cgs_const as cgs
 import read_mist_models
 from astropy.table import Table
 
+import os
+
 def init_to_final(mi):
     if mi < 8.0 * cgs.M_sun:
         return 0.6 * cgs.M_sun
@@ -68,8 +70,10 @@ class Star(object):
             temp = ff.read()
             temp = temp.replace("TT1", ms_grid_str[ii] + "M.track")
             temp = temp.replace("TT2", ms_grid_str[jj] + "M.track")
-            temp = temp.replace("EEP_BASE", self.eep_base)    
-        with open("input.example", "w") as ff:
+            temp = temp.replace("EEP_BASE", self.eep_base)
+        print("writing input files for iso", self.iso_path, os.getcwd())
+        with open("./input.example", "w") as ff:
+            print("test")
             ff.write(temp)
 
         with open(self.iso_path + "/input.tracks_template", "r") as ff:
@@ -86,9 +90,9 @@ class Star(object):
         track.eeps["star_age"] = (track.eeps["star_age"] - track.eeps["star_age"][0]) / 1e6
         self.track = Table(track.eeps)['star_age', 'star_mass', 'log_R', 'phase', 'log_Teff', 'log_L']
 
-        bc.bash_command("rm interpTrack")
-        bc.bash_command("rm input.tracks")
-        bc.bash_command("rm input.example")
+        # bc.bash_command("rm interpTrack")
+        # bc.bash_command("rm input.tracks")
+        # bc.bash_command("rm input.example")
 
         if self.phot_sys:
             cmd_track = read_mist_models.EEPCMD("interpTrack.cmd")
@@ -96,7 +100,7 @@ class Star(object):
             cols = ["star_age"]
             cols = list(np.concatenate((cols, self.filters)))
             self.track_cmd = Table(cmd_track.eepcmds)[cols]
-            bc.bash_command("rm interpTrack.cmd")
+            # bc.bash_command("rm interpTrack.cmd")
 
     def evolve_star(self, t):
         """

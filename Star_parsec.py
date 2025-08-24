@@ -19,6 +19,7 @@ def remnant_mass(msi):
         return 10. * cgs.M_sun
 
 
+##Does not actually work with None argument here(!)
 def log_interp(xx, x, y, right=None):
     return 10.**np.interp(np.log10(xx), np.log10(x), np.log10(y), right=np.log10(right))
 
@@ -62,6 +63,15 @@ class Star(object):
         #Implicitly assumes time column should be sorted (OK?)
         self.times = np.unique(track['logAge'])
         self.track = track
+        my_track_pd = self.track.to_pandas()
+
+        tgrid = my_track_pd["logAge"].unique()
+        ms_turn_offs = []
+        for tt in tgrid:
+            tmp_pd = my_track_pd.loc[(my_track_pd["logAge"] == tt) & (my_track_pd["label"]<=1)]
+            ms_turn_offs.append(tmp_pd["Mini"].max())
+        
+        self.ttams_cgs = 10.**semi_log_interp(self.msi, ms_turn_offs[::-1], tgrid[::-1]) * cgs.year
 
     def evolve_star(self, t):
         """

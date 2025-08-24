@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 
 
-def annotate_multiple_ecdf(datasets, labels, x_offset=None, y_offset=0.0, ha=None, levels=None, colors=None, linestyles=None, ax=None):
+def annotate_multiple_ecdf(datasets, labels, x_offset=None, y_offset=0.0, ha=None, levels=None, colors=None, alphas=None, linestyles=None, ax=None):
     """
     Annotate multiple ECDF plots with one annotation per line.
 
@@ -24,6 +24,9 @@ def annotate_multiple_ecdf(datasets, labels, x_offset=None, y_offset=0.0, ha=Non
     if colors is None:
         colors = [None] * len(labels)
 
+    if alphas is None:
+        alphas = [None] * len(labels)
+
     if ha is None:
         ha = ["left"] * len(labels)
 
@@ -32,7 +35,7 @@ def annotate_multiple_ecdf(datasets, labels, x_offset=None, y_offset=0.0, ha=Non
 
     for i, data in enumerate(datasets):
         # Create the ECDF plot for each dataset
-        l1 = sns.ecdfplot(data, linestyle=linestyles[i], color=colors[i], ax=ax)
+        l1 = sns.ecdfplot(data, linestyle=linestyles[i], color=colors[i], alpha=alphas[i], ax=ax)
 
         # Get the ECDF data points
         ecdf_data = np.sort(data)

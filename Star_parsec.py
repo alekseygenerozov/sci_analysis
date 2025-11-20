@@ -71,7 +71,7 @@ class Star(object):
             tmp_pd = my_track_pd.loc[(my_track_pd["logAge"] == tt) & (my_track_pd["label"]<=1)]
             ms_turn_offs.append(tmp_pd["Mini"].max())
         
-        self.ttams_cgs = 10.**semi_log_interp(self.msi, ms_turn_offs[::-1], tgrid[::-1]) * cgs.year
+        self.ttams_cgs = 10.**semi_log_interp(self.msi / cgs.M_sun, ms_turn_offs[::-1], tgrid[::-1]) * cgs.year
 
     def evolve_star(self, t):
         """

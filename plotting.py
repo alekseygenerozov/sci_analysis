@@ -1,6 +1,7 @@
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import pandas as pd
 from scipy.stats import gaussian_kde
 
 from sklearn.linear_model import LinearRegression
@@ -109,7 +110,7 @@ def fill_between_ecdf(data1, data2, fig=None, fill_color=None):
 
 ##Plot ecdf with error region...
 
-def scatter_plus_regression(X, y, ax=None):
+def scatter_plus_regression(X, y, ax=None, c=None):
     """
     Make a scatter plot with a linear regression
 
@@ -125,11 +126,25 @@ def scatter_plus_regression(X, y, ax=None):
     r2s = r2_score(y_true, y_pred)
     absc = np.linspace(X.min(), X.max())
     absc = absc.reshape(-1, 1)
-    ords = reg1.predict(np.log10(absc))
+    ords = reg1.predict(absc)
     ##Plotting
     if ax is None:
         fig,ax = plt.subplots()
+    sc = ax.scatter(X.ravel(), y, c=c)
+    if c is not None:
+        plt.colorbar(sc)
     l1, = ax.plot(absc, ords, "r--", label=rf"Slope=${reg1.coef_[0]:.2f}$"+ "\n" + r"$R^2$=" + f"{r2s:.2f}")
     labelLines([l1], align=False, y_offset=0.7, fontsize=16, xvals=[0.8])
+
+def kde_plot(X, y, ax=None):
+    """
+    Make a scatter plot with a linear regression
+
+    x, y--1D Arrays
+    """
+    dat = np.transpose((X, y))
+    dat = pd.DataFrame(dat, columns=("x", "y"))
+    sns.kdeplot(dat, x="x", y="y", ax=ax)
+
 
 
